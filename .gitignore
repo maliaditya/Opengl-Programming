@@ -1,0 +1,9 @@
+*.vs
+*.obj
+*.exe
+*.res
+*.log
+*.mp4
+*.gltf
+*.fbx
+
