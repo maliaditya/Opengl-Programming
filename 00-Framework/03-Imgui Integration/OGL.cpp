@@ -1,4 +1,12 @@
 // Header Files
+#include "Imgui/imgui.h"
+#include "Imgui/imgui_impl_opengl3.h"
+#include "Imgui/imgui_impl_win32.h"
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+
+
 #include <windows.h>
 #include "OGL.h"
 
@@ -153,6 +161,28 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	// show window
 	ShowWindow(hwnd, iCmdShow);
 
+
+	// Initialize ImGui
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad | ImGuiConfigFlags_DockingEnable;
+	ImGui::StyleColorsDark();
+
+	// Setup Platform/Renderer bindings
+	ImGui_ImplWin32_Init(ghwnd);
+	ImGui_ImplOpenGL3_Init("#version 130");
+
+
+
+	// Our state
+	bool show_demo_window = true;
+	bool show_another_window = false;
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+
+
+
 	// Foregrounding and focusing the window
 	SetForegroundWindow(hwnd);
 	SetFocus(hwnd);
@@ -185,8 +215,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLi
 	}
 
 
+	// Cleanup
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplWin32_Shutdown();
+	ImGui::DestroyContext();
+
 	return((int)msg.wParam);
 }
+
+// Forward declare message handler from imgui_impl_win32.cpp
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWhwnnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 // Callback function
 LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
@@ -195,6 +233,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT iMsg, WPARAM wParam, LPARAM lParam)
 	void ToggleFullscreen(void);
 	void resize(int, int);
 	void uninitializer(void);
+
+	ImGui_ImplWin32_WndProcHandler(hwnd, iMsg, wParam, lParam);
 
 	// code
 	switch (iMsg)
@@ -569,14 +609,53 @@ void resize(int width, int height)
 	perspectiveProjectionMatrix = perspective(45.0f, (GLfloat)width / (GLfloat)height, 0.1f, 100.0f);
 }
 
+ImVec2 availableSpaceProperties;
+
+void imGUI()
+{
+
+	//code
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	// Start ImGui frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplWin32_NewFrame();
+	ImGui::NewFrame();
+	ImGui::SetNextWindowBgAlpha(0.35f);
+	ImGui::DockSpaceOverViewport();
+
+	// Other ImGui elements (optional)
+	ImGui::Begin("Properties");
+	availableSpaceProperties = ImGui::GetContentRegionAvail(); // used for viewport 
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+	ImGui::Separator();
+
+	ImGui::End();
+
+}
+
+
 void display(void)
 {
 	//code
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	imGUI();
+
+	// Scene Viewport
+	ImGui::SetNextWindowBgAlpha(0.0f);
+	ImGui::Begin("Scene");
+	ImVec2 availableSpace = ImGui::GetContentRegionAvail();
+
+	// Calculate half of available space for centering
+
+	float halfWidth = availableSpace.x / 2.0f;
+	float halfHeight = availableSpace.y / 2.0f;
+	glViewport(availableSpaceProperties.x, 0, availableSpace.x, availableSpace.y);
+
 	// Use The Shader Program Object
 	glUseProgram(shaderProgramObject);
-
 
 	// Transformations
 	mat4 translationMatrix = mat4(1.0);
@@ -599,6 +678,12 @@ void display(void)
 
 	// unuser the shader program object
 	glUseProgram(0);
+	
+	// End Scene Window
+	ImGui::End();
+
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 	SwapBuffers(ghdc);
 }

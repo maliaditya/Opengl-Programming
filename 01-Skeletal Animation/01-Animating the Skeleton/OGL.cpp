@@ -777,8 +777,6 @@ void imGUI()
 	if (startAutoBlendAnimation)
 	{
 
-
-
 	if (autoBlendAnimations) {
 		if (animationBlendFactor <= 1.0f)
 		{
@@ -790,7 +788,6 @@ void imGUI()
 			autoBlendAnimations = false;
 	}
 
-
 	if (!autoBlendAnimations) {
 		if (animationBlendFactor >= 0.0f)
 			animationBlendFactor -= autoBlendSpeed;
@@ -799,10 +796,8 @@ void imGUI()
 		if (autoBlendController <= -autoBlendWait)
 			autoBlendAnimations = true;
 	}
-
 	}
 	
-    
 	ImGui::Separator();
 	ImGui::Text("Transformations:");
 	ImGui::SliderFloat("TranslateX", &translatex, -10.0f, 10.0f);
@@ -819,8 +814,6 @@ void imGUI()
 		angleCube += 0.01f;
 
 	ImGui::End();
-
-
 
 }
 
